@@ -23,7 +23,7 @@ private:
 
     union XMLValue
     {
-        XMLElement* element;
+        XMLElement element;
         XMLText     text;
     }
 
@@ -33,7 +33,7 @@ public:
 
     immutable XMLType type;
 
-    this( XMLElement* element )
+    this( XMLElement element )
     {
         this.value.element = element;
         this.type = XMLType.ELEMENT;
@@ -46,13 +46,13 @@ public:
     }
 
     @property {
-        XMLElement* element()
+        ref XMLElement element()
         {
             assert( this.type == XMLType.ELEMENT );
             return this.value.element;
         }
 
-        XMLText text()
+        ref XMLText text()
         {
             assert( this.type == XMLType.TEXT );
             return this.value.text;
@@ -83,7 +83,7 @@ public:
 
     @property
     {
-        XMLElement*[] elems()
+        XMLElement[] elems()
         {
             return childs.filter!( a => a.type == XMLType.ELEMENT ).map!( b => b.element ).array;
         }
@@ -313,7 +313,7 @@ XMLDocument parseXML(T)(T xml) if (isInputRange!T)
                 {
                     assert( stack.length == 1 );
                     assert( stack.front[1] );
-                    doc.root = *(stack.front[0].element);
+                    doc.root = stack.front[0].element;
                     return;
                 }
             }
@@ -326,7 +326,7 @@ XMLDocument parseXML(T)(T xml) if (isInputRange!T)
                 }
                 skip( 1 ); // eat "<"
 
-                XMLElement* elem = new XMLElement();
+                XMLElement elem;
                 while( xml.front != ' ' && xml.front != '>' )
                     elem.tag ~= peekChar;
 
