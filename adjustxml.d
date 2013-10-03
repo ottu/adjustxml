@@ -254,7 +254,27 @@ XMLDocument parseXML(T)(T xml) if (isInputRange!T)
 
         void setText( string text )
         {
-            stack ~= tuple( XMLChild( text ), true );
+            //stack ~= tuple( XMLChild( text ), true );
+
+            string parentTag = "";
+            foreach( child; stack.retro )
+            {
+                if( child[0].type != XMLType.ELEMENT ) continue;
+
+                parentTag = child[0].element.tag;
+                break;
+            }
+
+            assert( parentTag != "" );
+
+            if( [ "script", "noscript", "comments" ].find( parentTag ) != [] )
+                stack ~= tuple( XMLChild( text ), true );
+            else
+            {
+                foreach( str; text.split )
+                    stack ~= tuple( XMLChild( str ), true );
+            }
+
         }
 
         void writeChild( XMLChild child )
@@ -401,21 +421,31 @@ unittest
     assert( doc.root.elems[0].tag == "b" );
     assert( doc.root.elems[1].tag == "c" );
     assert( doc.root.elems[2].tag == "d" );
-    assert( doc.root.elems[3].texts == ["5 5 5"] );
-    assert( doc.root.texts == [ "2 2 2", "4 4 4" ] );
+    assert( doc.root.elems[3].texts == ["5", "5", "5"] );
+    assert( doc.root.texts == [ "2", "2", "2", "4", "4", "4" ] );
     assert( doc.root.pretty == [
             "<a id=\"a\">",
             "    <b id=\"b\">",
-            "        1 1 1",
+            "        1",
+            "        1",
+            "        1",
             "    </b>",
-            "    2 2 2",
+            "    2",
+            "    2",
+            "    2",
             "    <c id=\"c\">",
-            "        3 3 3",
+            "        3",
+            "        3",
+            "        3",
             "    </c>",
-            "    4 4 4",
+            "    4",
+            "    4",
+            "    4",
             "    <d id=\"d\" />",
             "    <e id=\"e\">",
-            "        5 5 5",
+            "        5",
+            "        5",
+            "        5",
             "    </e>",
             "    <f id=\"f\" />",
             "</a>" ] );
